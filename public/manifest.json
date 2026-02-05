@@ -1,7 +1,6 @@
 {
   "short_name": "Resonate",
   "name": "Resonate - Social Voice Platform",
-  "description": "Real-time audio communication platform for open-source communities. Create rooms, moderate speakers, and connect with peers.",
   "icons": [
     {
       "src": "favicon.ico",
