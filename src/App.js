@@ -16,180 +16,192 @@ import Lenis from 'lenis';
 gsap.registerPlugin(ScrollTrigger);
 
 function App() {
+  const mainRef = React.useRef(null);
+
   useEffect(() => {
+    // Reduced motion check
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     // Initialize Lenis for smooth scrolling
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: 'vertical',
       gestureDirection: 'vertical',
-      smooth: true,
+      smooth: !prefersReducedMotion, // Disable smooth scroll if reduced motion
       mouseMultiplier: 1,
       smoothTouch: false,
       touchMultiplier: 2,
     });
 
+    let rafId;
     function raf(time) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
-    // GSAP Animations
+    // GSAP Context for cleanup and scoping
+    let ctx = gsap.context(() => {
+      // Skip animations if reduced motion is preferred
+      if (prefersReducedMotion) return;
 
-    // Hero Animation
-    const heroTl = gsap.timeline();
-    heroTl.fromTo('.hero-content h1',
-      { y: 100, opacity: 0, rotateX: -20 },
-      { y: 0, opacity: 1, rotateX: 0, duration: 1, ease: 'power4.out' }
-    )
-      .fromTo('.hero-content h2',
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
-        "-=0.8"
+      // Hero Animation
+      const heroTl = gsap.timeline();
+      heroTl.fromTo('.hero-content h1',
+        { y: 100, opacity: 0, rotateX: -20 },
+        { y: 0, opacity: 1, rotateX: 0, duration: 1, ease: 'power4.out' }
       )
-      .fromTo('.hero-content p',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
-        "-=0.8"
-      )
-      .fromTo('.hero-buttons',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
-        "-=0.8"
-      )
-      .fromTo('.hero-image',
-        { x: 100, opacity: 0, scale: 0.9 },
-        { x: 0, opacity: 1, scale: 1, duration: 1.2, ease: 'power3.out' },
-        "-=1"
-      )
-      .fromTo('.hero-description-container p',
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
-        "-=0.5"
-      );
+        .fromTo('.hero-content h2',
+          { y: 50, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+          "-=0.8"
+        )
+        .fromTo('.hero-content p',
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+          "-=0.8"
+        )
+        .fromTo('.hero-buttons',
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+          "-=0.8"
+        )
+        .fromTo('.hero-image',
+          { x: 100, opacity: 0, scale: 0.9 },
+          { x: 0, opacity: 1, scale: 1, duration: 1.2, ease: 'power3.out' },
+          "-=1"
+        )
+        .fromTo('.hero-description-container p',
+          { y: 50, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+          "-=0.5"
+        );
 
-    // Features Animation
-    gsap.utils.toArray('.feature-item').forEach((feature, i) => {
-      const image = feature.querySelector('.feature-image');
-      const text = feature.querySelector('.feature-content h3');
+      // Features Animation
+      gsap.utils.toArray('.feature-item').forEach((feature, i) => {
+        const image = feature.querySelector('.feature-image');
+        const text = feature.querySelector('.feature-content h3');
 
-      const tl = gsap.timeline({
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: feature,
+            start: 'top 80%',
+            toggleActions: 'play none none reverse'
+          }
+        });
+
+        tl.fromTo(image,
+          { scale: 0.8, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 1, ease: 'power3.out' }
+        )
+          .fromTo(text,
+            { y: 50, opacity: 0 },
+            { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+            "-=0.6"
+          );
+      });
+
+      // Tech Stack Animation
+      const techStackTl = gsap.timeline({
         scrollTrigger: {
-          trigger: feature,
-          start: 'top 80%',
-          toggleActions: 'play none none reverse'
+          trigger: '.tech-stack',
+          start: 'top 75%',
         }
       });
 
-      tl.fromTo(image,
-        { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 1, ease: 'power3.out' }
+      techStackTl.fromTo('.tech-stack',
+        { scale: 0.95, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.8, ease: 'power2.out' }
       )
-        .fromTo(text,
-          { y: 50, opacity: 0 },
-          { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+        .fromTo('.tech-stack h2',
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
+          "-=0.4"
+        )
+        .fromTo('.tech-logo',
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, stagger: 0.2, ease: 'back.out(1.7)' },
           "-=0.6"
         );
-    });
 
-    // Tech Stack Animation
-    const techStackTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.tech-stack',
-        start: 'top 75%',
-      }
-    });
+      // About Animation
+      const aboutTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: '.about',
+          start: 'top 70%',
+        }
+      });
 
-    techStackTl.fromTo('.tech-stack',
-      { scale: 0.95, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.8, ease: 'power2.out' }
-    )
-      .fromTo('.tech-stack h2',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
-        "-=0.4"
+      aboutTl.fromTo('.about-logo',
+        { x: -50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 1, ease: 'power3.out' }
       )
-      .fromTo('.tech-logo',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, stagger: 0.2, ease: 'back.out(1.7)' },
-        "-=0.6"
+        .fromTo('.about-content h2',
+          { x: 50, opacity: 0 },
+          { x: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+          "-=0.8"
+        )
+        .fromTo('.about-content p',
+          { x: 50, opacity: 0 },
+          { x: 0, opacity: 1, duration: 1, ease: 'power3.out' },
+          "-=0.8"
+        )
+        .fromTo('.social-links a',
+          { y: 20, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.7)' },
+          "-=0.6"
+        );
+
+      // Voice Demo Animation
+      const voiceTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: '.voice-demo-section',
+          start: 'top 80%',
+        }
+      });
+
+      voiceTl.fromTo('.voice-demo-container',
+        { y: 50, opacity: 0, scale: 0.95 },
+        { y: 0, opacity: 1, scale: 1, duration: 1, ease: 'power3.out' }
       );
 
-    // About Animation
-    const aboutTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.about',
-        start: 'top 70%',
-      }
-    });
+      // Download App Animation
+      const downloadTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: '.download-app-section',
+          start: 'top 80%',
+        }
+      });
 
-    aboutTl.fromTo('.about-logo',
-      { x: -50, opacity: 0 },
-      { x: 0, opacity: 1, duration: 1, ease: 'power3.out' }
-    )
-      .fromTo('.about-content h2',
-        { x: 50, opacity: 0 },
-        { x: 0, opacity: 1, duration: 1, ease: 'power3.out' },
-        "-=0.8"
+      downloadTl.fromTo('.download-app-card',
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 1, ease: 'power2.out' }
       )
-      .fromTo('.about-content p',
-        { x: 50, opacity: 0 },
-        { x: 0, opacity: 1, duration: 1, ease: 'power3.out' },
-        "-=0.8"
-      )
-      .fromTo('.social-links a',
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'back.out(1.7)' },
-        "-=0.6"
-      );
+        .fromTo('.download-app-card h2',
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
+          "-=0.6"
+        )
+        .fromTo('.store-btn',
+          { scale: 0.8, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.6, stagger: 0.2, ease: 'back.out(1.7)' },
+          "-=0.4"
+        );
 
-    // Voice Demo Animation
-    const voiceTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.voice-demo-section',
-        start: 'top 80%',
-      }
-    });
-
-    voiceTl.fromTo('.voice-demo-container',
-      { y: 50, opacity: 0, scale: 0.95 },
-      { y: 0, opacity: 1, scale: 1, duration: 1, ease: 'power3.out' }
-    );
-
-    // Download App Animation
-    const downloadTl = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.download-app-section',
-        start: 'top 80%',
-      }
-    });
-
-    downloadTl.fromTo('.download-app-card',
-      { y: 50, opacity: 0 },
-      { y: 0, opacity: 1, duration: 1, ease: 'power2.out' }
-    )
-      .fromTo('.download-app-card h2',
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
-        "-=0.6"
-      )
-      .fromTo('.store-btn',
-        { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.6, stagger: 0.2, ease: 'back.out(1.7)' },
-        "-=0.4"
-      );
+    }, mainRef);
 
     // Cleanup function
     return () => {
       lenis.destroy();
-      ScrollTrigger.getAll().forEach(t => t.kill());
+      cancelAnimationFrame(rafId);
+      ctx.revert(); // This kills all GSAP animations and ScrollTriggers created in this context
     };
   }, []);
 
   return (
-    <div className="App">
+    <div className="App" ref={mainRef}>
       <Navbar />
       <Hero />
       <VoiceDemo />

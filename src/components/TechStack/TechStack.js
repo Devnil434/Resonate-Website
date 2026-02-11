@@ -22,57 +22,57 @@ const TechStack = () => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
 
-    // Duplicating the list for seamless looping is handled in JSX, 
-    // but GSAP will handle the movement for maximum control and smoothness.
-    const totalWidth = scrollContainer.scrollWidth / 2;
+    const ctx = gsap.context(() => {
+      const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    const animation = gsap.to(scrollContainer, {
-      x: `-=${totalWidth}`,
-      duration: 20,
-      ease: 'none',
-      repeat: -1,
-      onReverseComplete: () => {
-        gsap.set(scrollContainer, { x: 0 });
-      }
-    });
+      // Duplicating the list for seamless looping is handled in JSX, 
+      // but GSAP will handle the movement for maximum control and smoothness.
+      const totalWidth = scrollContainer.scrollWidth / 2;
 
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const animation = gsap.to(scrollContainer, {
+        x: `-=${totalWidth}`,
+        duration: 20,
+        ease: 'none',
+        repeat: -1,
+        paused: mediaQuery.matches, // Start paused if reduced motion
+        onReverseComplete: () => {
+          gsap.set(scrollContainer, { x: 0 });
+        }
+      });
 
-    const handleMouseEnter = () => {
-      if (!mediaQuery.matches) {
-        animation.pause();
-      }
-    };
+      const handleMouseEnter = () => {
+        if (!mediaQuery.matches) {
+          animation.pause();
+        }
+      };
 
-    const handleMouseLeave = () => {
-      if (!mediaQuery.matches) {
-        animation.play();
-      }
-    };
+      const handleMouseLeave = () => {
+        if (!mediaQuery.matches) {
+          animation.play();
+        }
+      };
 
-    const handleMediaQueryChange = (e) => {
-      if (e.matches) {
-        animation.pause();
-      } else {
-        animation.play();
-      }
-    };
+      const handleMediaQueryChange = (e) => {
+        if (e.matches) {
+          animation.pause();
+        } else {
+          animation.play();
+        }
+      };
 
-    scrollContainer.addEventListener('mouseenter', handleMouseEnter);
-    scrollContainer.addEventListener('mouseleave', handleMouseLeave);
-    mediaQuery.addEventListener('change', handleMediaQueryChange);
+      scrollContainer.addEventListener('mouseenter', handleMouseEnter);
+      scrollContainer.addEventListener('mouseleave', handleMouseLeave);
+      mediaQuery.addEventListener('change', handleMediaQueryChange);
 
-    // Initial check
-    if (mediaQuery.matches) {
-      animation.pause();
-    }
+      // Cleanup specific to this scope
+      return () => {
+        scrollContainer.removeEventListener('mouseenter', handleMouseEnter);
+        scrollContainer.removeEventListener('mouseleave', handleMouseLeave);
+        mediaQuery.removeEventListener('change', handleMediaQueryChange);
+      };
+    }, scrollRef);
 
-    return () => {
-      scrollContainer.removeEventListener('mouseenter', handleMouseEnter);
-      scrollContainer.removeEventListener('mouseleave', handleMouseLeave);
-      mediaQuery.removeEventListener('change', handleMediaQueryChange);
-      animation.kill();
-    };
+    return () => ctx.revert();
   }, []);
 
   return (

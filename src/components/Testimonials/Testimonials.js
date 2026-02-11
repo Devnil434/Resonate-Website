@@ -46,42 +46,45 @@ const Testimonials = () => {
         const wrapper = wrapperRef.current;
         if (!wrapper) return;
 
-        // Check prefers-reduced-motion BEFORE doing anything
-        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const ctx = gsap.context(() => {
+            // Check prefers-reduced-motion
+            const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-        if (mediaQuery.matches) {
-            return; // Skip animation completely
-        }
-
-        const totalWidth = wrapper.scrollWidth / 2; // Width of original set
-
-        gsap.set(wrapper, { x: 0 });
-
-        const tween = gsap.to(wrapper, {
-            x: -totalWidth,
-            duration: 30, // Adjust speed here
-            ease: 'none',
-            repeat: -1,
-            modifiers: {
-                x: gsap.utils.unitize((x) => parseFloat(x) % totalWidth) // Use modulo for seamless loop
+            if (mediaQuery.matches) {
+                return; // Skip animation completely
             }
-        });
 
-        tweenRef.current = tween;
+            const totalWidth = wrapper.scrollWidth / 2; // Width of original set
 
-        const handleMouseEnter = () => tween.pause();
-        const handleMouseLeave = () => tween.resume();
+            gsap.set(wrapper, { x: 0 });
 
-        wrapper.addEventListener('mouseenter', handleMouseEnter);
-        wrapper.addEventListener('mouseleave', handleMouseLeave);
+            const tween = gsap.to(wrapper, {
+                x: -totalWidth,
+                duration: 30, // Adjust speed here
+                ease: 'none',
+                repeat: -1,
+                modifiers: {
+                    x: gsap.utils.unitize((x) => parseFloat(x) % totalWidth) // Use modulo for seamless loop
+                }
+            });
 
-        return () => {
-            wrapper.removeEventListener('mouseenter', handleMouseEnter);
-            wrapper.removeEventListener('mouseleave', handleMouseLeave);
-            if (tweenRef.current) {
-                tweenRef.current.kill();
-            }
-        };
+            // Store tween for hover control, but we don't need to manually kill it thanks to context
+            tweenRef.current = tween;
+
+            const handleMouseEnter = () => tween.pause();
+            const handleMouseLeave = () => tween.resume();
+
+            wrapper.addEventListener('mouseenter', handleMouseEnter);
+            wrapper.addEventListener('mouseleave', handleMouseLeave);
+
+            // Cleanup specific to this scope
+            return () => {
+                wrapper.removeEventListener('mouseenter', handleMouseEnter);
+                wrapper.removeEventListener('mouseleave', handleMouseLeave);
+            };
+        }, wrapperRef);
+
+        return () => ctx.revert();
     }, []);
 
     return (

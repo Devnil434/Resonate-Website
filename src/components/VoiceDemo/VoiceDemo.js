@@ -22,6 +22,7 @@ const VoiceDemo = () => {
             if (mediaQuery.matches) return;
 
             // Pulse animation for active speakers
+            // We adding this to the context so it can be cleaned up
             const createPulse = (element) => {
                 const waves = element.querySelectorAll('.wave-circle');
                 gsap.set(waves, { scale: 1, opacity: 0 });
@@ -59,20 +60,23 @@ const VoiceDemo = () => {
                 setActiveSpeakers(selected);
 
                 // Add pulse to new active speakers
-                selected.forEach(id => {
-                    const el = containerRef.current.querySelector(`.avatar-wrapper[data-id="${id}"]`);
-                    if (el) {
-                        pulseAnimations.push(createPulse(el));
-                    }
+                // IMPORTANT: Use ctx.add() to ensure these new animations are tracked by the context
+                ctx.add(() => {
+                    selected.forEach(id => {
+                        const el = containerRef.current.querySelector(`.avatar-wrapper[data-id="${id}"]`);
+                        if (el) {
+                            pulseAnimations.push(createPulse(el));
+                        }
+                    });
                 });
             };
 
             const interval = setInterval(rotateSpeakers, 3000);
             rotateSpeakers(); // Initial call
 
+            // Return cleanup function for the context's scope
             return () => {
                 clearInterval(interval);
-                pulseAnimations.forEach(anim => anim.kill());
             };
         }, containerRef);
 
