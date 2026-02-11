@@ -9,12 +9,12 @@ const DownloadApp = () => {
       <div className="download-app-card">
         <h2>Get the Resonate Mobile app.</h2>
         <div className="store-buttons">
-          <a href="#" className="store-btn">
+          <button type="button" className="store-btn" aria-label="Download on App Store">
             <img src={appStoreBtn} alt="Download on App Store" />
-          </a>
-          <a href="#" className="store-btn">
+          </button>
+          <button type="button" className="store-btn" aria-label="Get it on Google Play">
             <img src={playStoreBtn} alt="Get it on Google Play" />
-          </a>
+          </button>
         </div>
       </div>
     </section>

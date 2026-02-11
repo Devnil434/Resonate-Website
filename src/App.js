@@ -92,15 +92,20 @@ function App() {
           }
         });
 
-        tl.fromTo(image,
-          { scale: 0.8, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 1, ease: 'power3.out' }
-        )
-          .fromTo(text,
+        if (image) {
+          tl.fromTo(image,
+            { scale: 0.8, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 1, ease: 'power3.out' }
+          );
+        }
+
+        if (text) {
+          tl.fromTo(text,
             { y: 50, opacity: 0 },
             { y: 0, opacity: 1, duration: 1, ease: 'power3.out' },
-            "-=0.6"
+            image ? "-=0.6" : "0"
           );
+        }
       });
 
       // Tech Stack Animation

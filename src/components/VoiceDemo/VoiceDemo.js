@@ -45,7 +45,9 @@ const VoiceDemo = () => {
             // Effect to handle speaker rotation
             const rotateSpeakers = () => {
                 // Kill previous animations
-                pulseAnimations.forEach(anim => anim.kill());
+                pulseAnimations.forEach(anim => {
+                    anim.kill();
+                });
                 pulseAnimations = [];
 
                 // Randomly pick 1 or 2 speakers
@@ -62,6 +64,8 @@ const VoiceDemo = () => {
                 // Add pulse to new active speakers
                 // IMPORTANT: Use ctx.add() to ensure these new animations are tracked by the context
                 ctx.add(() => {
+                    if (!containerRef?.current) return;
+                    
                     selected.forEach(id => {
                         const el = containerRef.current.querySelector(`.avatar-wrapper[data-id="${id}"]`);
                         if (el) {
@@ -100,8 +104,7 @@ const VoiceDemo = () => {
                             key={avatar.id}
                             className={`avatar-wrapper ${activeSpeakers.includes(avatar.id) ? 'speaking' : ''}`}
                             data-id={avatar.id}
-                            tabIndex="0"
-                            aria-label={`${avatar.name}, ${avatar.role}`}
+                            aria-label={`${avatar.name}, ${avatar.role}${activeSpeakers.includes(avatar.id) ? ', speaking' : ''}`}
                         >
                             <div className="avatar-circle">
                                 <div className="avatar-placeholder">{avatar.initial}</div>
